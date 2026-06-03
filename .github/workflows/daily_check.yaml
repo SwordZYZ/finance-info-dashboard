@@ -2,8 +2,8 @@ name: Daily Dividend Rate Fetcher
 
 on:
   schedule:
-    # UTC 时间的 02:17, 06:17, 10:17, 14:17, 18:17, 22:17 触发
-    - cron: '17 */4 * * *'
+    # 显式指定 UTC 的 5点、11点、17点、23点触发
+    - cron: '17 5,11,17,23 * * *'
   workflow_dispatch: # 允许你在 GitHub 页面上手动点击按钮触发运行
 
 jobs:
