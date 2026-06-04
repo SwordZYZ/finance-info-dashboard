@@ -23,6 +23,7 @@ jobs:
       uses: astral-sh/setup-uv@v5
       with:
         version: "latest"
+        token: ${{ secrets.RUNNER_PUSH_TOKEN }}
 
     - name: Run Python Script
       run: |
