@@ -2,21 +2,22 @@ name: Daily Dividend Rate Fetcher
 
 on:
   schedule:
-    # 显式指定 UTC 的 5点、11点、17点、23点触发
-    - cron: '17 5,11,17,23 * * *'
-  workflow_dispatch: # 允许你在 GitHub 页面上手动点击按钮触发运行
+    - cron: '00 11 * * *'
+  workflow_dispatch: # 允许手动触发
 
 jobs:
   run-script:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     
-    # ─── 核心新增：强行开启 Node.js 24 兼容模式，消除警告 ───
     env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true  # 强行开启 Node.js 24 兼容模式，消除警告
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
+      with:
+        # 显式传入 GitHub Token，防止你的 NAS 容器在 git push 时遭遇权限拦截
+        token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Setup uv
       uses: astral-sh/setup-uv@v5
@@ -25,6 +26,7 @@ jobs:
 
     - name: Run Python Script
       run: |
+        # 使用你已经迁移成功的 uv 包管理器优雅运行
         uv run main.py
 
     - name: Commit and Push changes
@@ -32,6 +34,6 @@ jobs:
         git config --local user.email "github-actions[bot]@users.noreply.github.com"
         git config --local user.name "github-actions[bot]"
         git add 930955indicator.xlsx data.json
-        # 只有在文件有变动（更新了新日期）时才提交，避免报错
+        # 只有在文件有变动时才提交，避免无意义的构建报错
         git diff-index --quiet HEAD || git commit -m "Update daily indicator data"
-        git push
+        git push origin main
