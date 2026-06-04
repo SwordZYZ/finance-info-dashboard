@@ -17,7 +17,7 @@ jobs:
       uses: actions/checkout@v4
       with:
         # 显式传入 GitHub Token，防止你的 NAS 容器在 git push 时遭遇权限拦截
-        token: ${{ secrets.GITHUB_TOKEN }}
+        token: ${{ secrets.RUNNER_PUSH_TOKEN }}
 
     - name: Setup uv
       uses: astral-sh/setup-uv@v5
