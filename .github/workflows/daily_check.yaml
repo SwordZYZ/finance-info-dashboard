@@ -37,7 +37,7 @@ jobs:
       run: |
         git config --local user.email "github-actions[bot]@users.noreply.github.com"
         git config --local user.name "github-actions[bot]"
+        git checkout -B main
         git add 930955indicator.xlsx data.json
-        # 只有在文件有变动时才提交，避免无意义的构建报错
         git diff-index --quiet HEAD || git commit -m "Update daily indicator data"
         git push origin main
