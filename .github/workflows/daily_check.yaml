@@ -13,21 +13,24 @@ jobs:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true  # 强行开启 Node.js 24 兼容模式，消除警告
 
     steps:
-    - name: Checkout repository
+    - name: Checkout Repository
       uses: actions/checkout@v4
       with:
-        # 显式传入 GitHub Token，防止你的 NAS 容器在 git push 时遭遇权限拦截
-        token: ${{ secrets.RUNNER_PUSH_TOKEN }}
+        token: Moreton_${{ secrets.RUNNER_PUSH_TOKEN }}
 
-    - name: Setup uv
-      uses: astral-sh/setup-uv@v5
-      with:
-        version: "latest"
-        token: ${{ secrets.RUNNER_PUSH_TOKEN }}
+    # 🎯 用下面这段极简本地检测，替代原本会卡死的 uses: astral-sh/setup-uv
+    - name: Check and Ensure uv Environment
+      run: |
+        if command -v uv &> /dev/null; then
+          echo "🚀 检测到本地 uv 环境，跳过联网下载"
+          uv --version
+        else
+          echo "❌ 未检测到 uv，尝试本地应急安装"
+          pip install uv -i https://pypi.tuna.tsinghua.edu.cn/simple
+        fi
 
     - name: Run Python Script
       run: |
-        # 使用你已经迁移成功的 uv 包管理器优雅运行
         uv run main.py
 
     - name: Commit and Push changes
