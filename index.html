@@ -56,9 +56,39 @@
         /* 2. 顶置高阶选项卡（Tabs切换卡片） */
         .tabs-container {
             display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin-bottom: 25px;
+            justify-content: center; /* 💻 大屏 PC 端：保持整体优雅居中 */
+            gap: 15px;               /* 卡片之间的标准间距 */
+            
+            /* 🎯 修复问题 1：把外边距从 25px 扩充到 32px，完美解决因 padding 挤压导致的间距变窄观感 */
+            margin-bottom: 32px; 
+            
+            /* 📱 移动端底座：超出时允许横向丝滑滑动 */
+            overflow-x: auto;
+            white-space: nowrap;
+            -webkit-overflow-scrolling: touch; /* 赋予 iOS 浏览器原生丝滑的滚动阻尼感 */
+            
+            /* 🎯 磁吸核武器：开启横向滚动时强行进行物理磁吸对齐（mandatory） */
+            scroll-snap-type: x mandatory;
+            
+            /* 🎯 解决上浮遮挡：上下拓宽 padding 到 8px，为卡片上浮和阴影发光留出绝对安全的高空 */
+            padding: 8px 0;
+
+            /* 隐藏手机端原生横向滚动条 */
+            scrollbar-width: none; /* Firefox */
+        }
+        
+        /* 隐藏横向滚动条 (Chrome / Safari) */
+        .tabs-container::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* 🎯 当屏幕小于 600px（手机端）时的滑动画廊布局调校 */
+        @media (max-width: 600px) {
+            .tabs-container {
+                justify-content: flex-start; /* 手机端：必须改为左对齐，才能腾出空间往右无尽滑动 */
+                padding-left: calc(50vw - 82px);  /* 👈 黄金数学公式：(50%屏幕宽) - (半张卡片宽80px + 2px边框)，确保第1张默认完美居中 */
+                padding-right: calc(50vw - 82px); /* 同理，确保最后一张卡片划到头也能完美居中，不会卡死在右边 */
+            }
         }
 
         .tab-card {
@@ -69,11 +99,17 @@
             text-align: center;
             cursor: pointer;
             transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-            min-width: 220px;
             border: 2px solid transparent;
+            
+            /* 🤝 响应你刚才的决定：保持 160px 的完美紧凑身材 */
+            min-width: 160px; 
+            flex-shrink: 0;   /* 🎯 极度关键：防止在手机端被 flex 弹性压缩变形 */
+
+            /* 📱 磁吸锚点：告诉浏览器，当滚动停下来、或者卡片被激活时，它的【中心线】必须和容器对齐 */
+            scroll-snap-align: center;
         }
 
-        /* 🎯 优化点 1：红利低波激活时使用蓝色方案 */
+        /* 🎯 红利低波激活时使用蓝色方案 */
         .tab-card.active.csi-style {
             border-color: var(--csi-color);
             transform: translateY(-2px);
@@ -83,7 +119,7 @@
             color: var(--csi-color);
         }
 
-        /* 🎯 优化点 1：美债实际利率激活时使用绿色方案 */
+        /* 🎯 美债实际利率激活时使用绿色方案 */
         .tab-card.active.fred-style {
             border-color: var(--fred-color);
             transform: translateY(-2px);
@@ -93,7 +129,7 @@
             color: var(--fred-color);
         }
 
-        /* 🎯 优化点 2：完美的字体字号三级分层 */
+        /* 🎯 完美的字体字号三级分层 */
         .title-text {
             display: block;      /* 独占一行实现自然换行 */
             font-size: 14px;     /* 👈 资产名称：比日期大，比数值小 */
@@ -115,7 +151,7 @@
             font-size: 22px;     /* 👈 最大字号：展示最醒目的最新数值 */
             font-weight: 700;
             color: var(--text-color);
-            font-family: sf-pro-display, -apple-system, "SF Mono", Monaco, monospace, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+            font-family: sf-pro-display, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif; /* 🚀 完美合并了上一版谈到的现代跨平台西文字体 */
         }
 
         /* 3. 图表骨架容器 */
@@ -136,13 +172,13 @@
     <div class="container">
         <h2 id="page-title">红利低波100股息率趋势</h2>
         
-        <div class="tabs-container">
-            <div class="tab-card active csi-style" id="tab-csi" onclick="switchTab('csi')">
+        <div class="tabs-container" id="tabs-container">
+            <div class="tab-card active csi-style" id="tab-csi" data-tab="csi">
                 <span class="title-text">红利低波 100 股息率</span>
                 <span class="date-text" id="csi-date">加载中...</span>
                 <div class="tab-value" id="csi-val">-- %</div>
             </div>
-            <div class="tab-card" id="tab-fred" onclick="switchTab('fred')">
+            <div class="tab-card" id="tab-fred" data-tab="fred">
                 <span class="title-text">美债 10 年实际利率</span>
                 <span class="date-text" id="fred-date">加载中...</span>
                 <div class="tab-value" id="fred-val">-- %</div>
@@ -156,20 +192,17 @@
         let myChart = null;
         let globalData = null;
         let currentTab = 'csi'; 
+        let isScrolling = false; // 🔒 防冲突互斥锁：大拇指摩擦滑动与指尖点击居中事件的绝缘体
 
         const isDarkMode = () => window.matchMedia('(prefers-color-scheme: dark)').matches;
-        
-        // 日期无损格式化
         const parseDate = (dateStr) => dateStr.toString().replace(/^(\d{4})(\d{2})(\d{2})$/, '$1-$2-$3');
 
         function updateKpiCards(data) {
-            // 1. 组装红利低波卡片组件
             if (data.csi930955 && data.csi930955.length > 0) {
                 const latestCsi = data.csi930955[data.csi930955.length - 1];
                 document.getElementById('csi-date').innerText = parseDate(latestCsi['日期Date']);
                 document.getElementById('csi-val').innerText = `${latestCsi['股息率2（计算用股本）D/P2'].toFixed(2)}%`;
             }
-            // 2. 组装美债实际利率卡片组件 (对接美债利率Rate)
             if (data.us10ytip && data.us10ytip.length > 0) {
                 const latestFred = data.us10ytip[data.us10ytip.length - 1];
                 document.getElementById('fred-date').innerText = parseDate(latestFred['日期Date']);
@@ -216,7 +249,6 @@
                 series: []
             };
 
-            // 路由调度：决定渲染红利还是美债
             if (currentTab === 'csi') {
                 document.getElementById('page-title').innerText = "红利低波100股息率趋势";
                 const csiArray = globalData.csi930955 || [];
@@ -247,7 +279,6 @@
                 option.xAxis.data = fredArray.map(item => parseDate(item['日期Date']));
                 option.legend = { data: ['美债 10 年实际利率'], bottom: 0 };
                 
-                // 智能美债 Y 轴上下限自适应算法：完美适配任意正负数区间
                 option.yAxis.min = function (value) {
                     if (value.min >= 1.0) return '1.00';
                     return (Math.floor((value.min - 0.01) * 10) / 10).toFixed(2);
@@ -257,7 +288,6 @@
                     return (Math.ceil((value.max + 0.01) * 10) / 10).toFixed(2);
                 };
                 option.series = [
-                    // 🎯 精准匹配你 data.json 中的美债利率Rate 键名
                     { name: '美债 10 年实际利率', type: 'line', data: fredArray.map(item => item['美债利率Rate']), smooth: false, showSymbol: true, symbolSize: 5, itemStyle: { color: '#52c41a' } }
                 ];
             }
@@ -270,7 +300,6 @@
             if (currentTab === tabName) return;
             currentTab = tabName;
             
-            // 动态挂载专属高亮类名，精准响应对应图表的折线颜色
             const tabCsi = document.getElementById('tab-csi');
             const tabFred = document.getElementById('tab-fred');
             
@@ -284,6 +313,50 @@
             
             renderChart();
         }
+
+        // 🚀 双向交互智能闭环逻辑绑定区
+        document.addEventListener("DOMContentLoaded", () => {
+            const container = document.getElementById('tabs-container');
+            const cards = document.querySelectorAll('.tab-card');
+
+            // 交互 A：点击任一卡片 -> 精准高亮 + 平滑磁吸驱动居中
+            cards.forEach(card => {
+                card.addEventListener('click', () => {
+                    const tabName = card.getAttribute('data-tab');
+                    if (currentTab === tabName) return;
+
+                    isScrolling = true; // 挂上互斥锁，告诉滑动监听器“这是我主动点的，别插手”
+                    switchTab(tabName);
+
+                    // 让浏览器原生地、带有平滑阻尼动画地将此卡片居中滚动
+                    card.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+
+                    // 动画结束后释放互斥锁
+                    setTimeout(() => { isScrolling = false; }, 400);
+                });
+            });
+
+            // 交互 B：大拇指摩擦自由滑动 -> 精准识别 160px 卡片并切换对应图表
+            const observerOptions = {
+                root: container,
+                rootMargin: '0px -30% 0px -30%', 
+                threshold: 0.5
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                // 🎯 核心修复：如果数据还没加载好(globalData为空)，或者处于点击触发的滚动中，直接拦截滑动的误判
+                if (!globalData || isScrolling) return; 
+                
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const tabName = entry.target.getAttribute('data-tab');
+                        switchTab(tabName);
+                    }
+                });
+            }, observerOptions);
+
+            cards.forEach(card => observer.observe(card));
+        });
 
         // 初始化
         fetch('data.json')
