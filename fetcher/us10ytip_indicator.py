@@ -64,5 +64,5 @@ def fetch_us10ytip_list(api_key: str = None, days_limit: int = 30) -> list:
 # 💡 留下一段单兵训练（Mock）接口：
 # 以后你调试这个脚本，不需要运行整个项目，直接在命令行敲：uv run fetcher/us10ytip_indicator.py
 if __name__ == "__main__":
-    res = fetch_us10ytip_list(api_key="8564bbe541091fb29e8fbc237380b2aa", days_limit=30) # 测试抓取最近 20 天
+    res = fetch_us10ytip_list(days_limit=30) # 测试抓取最近 20 天
     print("本地调试输出 List 示例（前两项）:", res[:2] if res else "无数据")
