@@ -375,27 +375,37 @@
             cards.forEach(card => observer.observe(card));
         });
 
-        // 初始化数据获取
-        fetch('data.json')
-            .then(response => response.json())
-            .then(data => {
-                globalData = data;
-                updateKpiCards(globalData); 
-                
-                // 🎯 5. 核心改动：数据加载后，强制将对应卡片滑块回滚居中，并解锁自由滑动
-                const activeCard = document.querySelector(`.tab-card[data-tab="${currentTab}"]`);
-                if (activeCard) {
-                    // 使用 'auto' 避免首屏闪烁，悄悄地在后台对齐
-                    activeCard.scrollIntoView({ behavior: 'auto', block: 'nearest', inline: 'center' });
-                }
-                
-                renderChart(); 
-                
-                // 延迟一小会儿，确保浏览器完全渲染好布局后，再放开自由滑动监听
-                setTimeout(() => {
-                    isInitialized = true;
-                }, 100);             
-            });
+        // 初始化数据获取：同时加载独立的红利低波与美债实际利率 JSON 文件
+        Promise.all([
+            fetch('data/csi_930955_data.json').then(res => res.json()),
+            fetch('data/us10ytip_data.json').then(res => res.json())
+        ])
+        .then(([csiData, usData]) => {
+            // 将两个独立的 List 组装成原图表逻辑兼容的 Object 结构
+            globalData = {
+                csi930955: csiData,
+                us10ytip: usData
+            };
+            
+            updateKpiCards(globalData); 
+            
+            // 🎯 5. 核心改动：数据加载后，强制将对应卡片滑块回滚居中，并解锁自由滑动
+            const activeCard = document.querySelector(`.tab-card[data-tab="${currentTab}"]`);
+            if (activeCard) {
+                // 使用 'auto' 避免首屏闪烁，悄悄地在后台对齐
+                activeCard.scrollIntoView({ behavior: 'auto', block: 'nearest', inline: 'center' });
+            }
+            
+            renderChart(); 
+            
+            // 延迟一小会儿，确保浏览器完全渲染好布局后，再放开自由滑动监听
+            setTimeout(() => {
+                isInitialized = true;
+            }, 100);             
+        })
+        .catch(err => {
+            console.error("数据加载失败:", err);
+        });
 
         window.addEventListener('resize', () => {
             if (myChart) myChart.resize();

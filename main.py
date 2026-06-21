@@ -2,75 +2,80 @@
 # dependencies = [
 #   "requests",
 #   "pandas",
-#   "xlrd",
-#   "openpyxl",
+#   "akshare",
 # ]
 # ///
 import os
 import json
 from fetcher.csi_930955_indicator import fetch_csi_930955_list
 from fetcher.us10ytip_indicator import fetch_us10ytip_list
+from fetcher.csi_000300_indicator import fetch_csi_000300_valuation
 
-# 🚀 配置文件路径（都在项目根目录下）
+# 🚀 路径安全锁：解耦拆分为三个独立的本地数据文件
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-DATA_JSON_PATH = os.path.join(CURRENT_DIR, "data.json")
+DATA_DIR = os.path.join(CURRENT_DIR, "data") # 👈 精准拼接出 根目录/data
+
+# 如果根目录下没有 data 文件夹，Python 会自动帮你创建它，再也不怕容器报错
+os.makedirs(DATA_DIR, exist_ok=True)
+
+PATH_CSI_000300 = os.path.join(DATA_DIR, "csi_000300_data.json")
+PATH_CSI_930955 = os.path.join(DATA_DIR, "csi_930955_data.json")
+PATH_US10YTIP = os.path.join(DATA_DIR, "us10ytip_data.json")
+
+def safe_write_json(file_path, data):
+    """安全写回本地JSON辅助函数"""
+    try:
+        with open(file_path, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+        print(f"💾 成功刷入本地文件: {os.path.basename(file_path)}")
+    except Exception as e:
+        print(f"❌ 写入 {os.path.basename(file_path)} 发生错误: {e}")
 
 def main():
     print("================ 监控看板自动化流水线启动 ================")
-    
-    # ------------------ 第一步：加载或初始化 data.json ------------------
-    if os.path.exists(DATA_JSON_PATH):
-        try:
-            with open(DATA_JSON_PATH, "r", encoding="utf-8") as f:
-                master_data = json.load(f)
-            print("📖 成功读取本地既有 data.json 数据库。")
-        except Exception as e:
-            print(f"⚠️ 读取 data.json 失败 (可能文件损坏)，将初始化新字典。原因: {e}")
-            master_data = {}
-    else:
-        print("🆕 未发现本地 data.json，将自动创建全新的数据大字典盒子。")
-        master_data = {}
 
-    # 如果读取出来的不是字典结构，强制重置为字典，确保容器安全
-    if not isinstance(master_data, dict):
-        master_data = {}
-
-    # ------------------ 第二步：并发抓取 ------------------
+    # ------------------ 第一步：并发抓取 ------------------
     
     # 1. 抓取红利低波 100 历史 List (默认取 20 天)
-    print("\n--- [任务 1/2] 抓取红利低波 100 指数数据 ---")
-    csi_data_list = fetch_csi_930955_list(limit_days=20)
+    print("\n--- [任务 1/3] 抓取红利低波 100 指数数据 ---")
+    csi_930955_dividend_list = fetch_csi_930955_list(limit_days=20)
     
     # 2. 抓取美债实际利率历史 List (默认取 20 天)
     # 密码由于写了 os.getenv，会完美自动读取你 UNRAID 容器或环境里的 FRED_API_KEY
-    print("\n--- [任务 2/2] 抓取圣路易斯联储 FRED 美债数据 ---")
-    fred_data_list = fetch_us10ytip_list(api_key="8564bbe541091fb29e8fbc237380b2aa", days_limit=20)
+    print("\n--- [任务 2/3] 抓取圣路易斯联储 FRED 美债数据 ---")
+    # 这里我们放大了接口请求的上限（days_limit=30），以确保在剔除掉美国节假日后，我们依然能获得足够的有效交易日数据（目标是至少20条）。所以即使接口返回了30条原始记录，最终我们也会在数据清洗阶段锁定到我们真正想要的20条有效交易日数据。
+    us10ytip_data_list = fetch_us10ytip_list(api_key="8564bbe541091fb29e8fbc237380b2aa", days_limit=30)
 
-    # ------------------ 第三步：数据更新替换 ------------------
-    print("\n--- 正在汇总所有 List ---")
+    # 3. 抓取沪深300估值指标历史 List (默认取 10 年)
+    print("\n--- [任务 3/3] 抓取沪深300估值指标数据 ---")
+    csi_000300_valuation_list = fetch_csi_000300_valuation(years_back=10)
+
+# ------------------ 第二步：非空安全校验与数据写入 ------------------
+    print("\n--- 正在汇总并写入所有数据 ---")
     
-    # 核心爽点：即使 csi 或 fred 某一路因为网络波动临时断流吐了空列表 []
-    # 我们也做个安全的非空校验，只有成功抓到数据时才覆盖，防止把老历史冲洗掉，自愈性拉满！
-    if csi_data_list:
-        master_data["csi930955"] = csi_data_list
-        print(f"✅ [红利低波100] 数据成功抓取，共 {len(csi_data_list)} 条记录。")
+    # 1. 红利低波独立落盘
+    if csi_930955_dividend_list:
+        # 直接存入纯数组结构，干净整洁
+        safe_write_json(PATH_CSI_930955, csi_930955_dividend_list)
+        print(f"✅ [红利低波100] 更新完毕，共 {len(csi_930955_dividend_list)} 条记录。")
     else:
         print("⚠️ [红利低波100] 本次抓取列表为空，保留上一次的历史缓存，不进行覆盖。")
 
-    if fred_data_list:
-        master_data["us10ytip"] = fred_data_list
-        print(f"✅ [美债利率] 数据成功抓取，共 {len(fred_data_list)} 条记录。")
+    # 2. 美债利率独立落盘
+    if us10ytip_data_list:
+        # 直接存入纯数组结构
+        safe_write_json(PATH_US10YTIP, us10ytip_data_list)
+        print(f"✅ [美债利率] 更新完毕，共 {len(us10ytip_data_list)} 条记录。")
     else:
         print("⚠️ [美债利率] 本次抓取列表为空，保留上一次的历史缓存，不进行覆盖。")
 
-    # ------------------ 第四步：写回本地 ------------------
-    try:
-        with open(DATA_JSON_PATH, "w", encoding="utf-8") as f:
-            # ensure_ascii=False 保持中文“股息率”非乱码，indent=2 保持 JSON 优美可读
-            json.dump(master_data, f, ensure_ascii=False, indent=2)
-        print(f"\n🎉 所有指标已成功抓取并写入字典: {DATA_JSON_PATH}")
-    except Exception as e:
-        print(f"\n❌ 写入 data.json 致命错误: {e}")
+    # 3. 沪深300独立落盘
+    if csi_000300_valuation_list:
+        # 存入包含 summary 和 history 的多维字典结构
+        safe_write_json(PATH_CSI_000300, csi_000300_valuation_list)
+        print(f"✅ [沪深300] 更新完毕，共 {len(csi_000300_valuation_list['history'])} 条记录。")
+    else:
+        print("⚠️ [沪深300] 本次抓取列表为空，保留上一次的历史缓存，不进行覆盖。")
 
     print("========================= 流水线结束 =========================")
 
