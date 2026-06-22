@@ -172,7 +172,7 @@
 <body>
 
     <div class="container">
-        <h2 id="page-title">红利低波100股息率趋势</h2>
+        <h2 id="page-title">红利低波100股息率</h2>
         
         <div class="tabs-container" id="tabs-container">
             <div class="tab-card active csi-style" id="tab-csi" data-tab="csi">
@@ -257,7 +257,7 @@
             };
 
             if (currentTab === 'csi') {
-                document.getElementById('page-title').innerText = "红利低波100股息率趋势";
+                document.getElementById('page-title').innerText = "红利低波100股息率";
                 const csiArray = globalData.csi930955 || [];
                 
                 option.xAxis.data = csiArray.map(item => parseDate(item['日期Date']));
@@ -280,7 +280,7 @@
                 ];
 
             } else if (currentTab === 'fred') {
-                document.getElementById('page-title').innerText = "美债 10 年实际利率趋势";
+                document.getElementById('page-title').innerText = "美债 10 年实际利率";
                 const fredArray = globalData.us10ytip || [];
                 
                 option.xAxis.data = fredArray.map(item => parseDate(item['日期Date']));
