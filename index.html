@@ -377,13 +377,15 @@
 
         // 初始化数据获取：同时加载独立的红利低波与美债实际利率 JSON 文件
         Promise.all([
+            fetch('data/csi_000300_data.json').then(res => res.json()),
             fetch('data/csi_930955_data.json').then(res => res.json()),
             fetch('data/us10ytip_data.json').then(res => res.json())
         ])
-        .then(([csiData, usData]) => {
+        .then(([csi000300Data, csi930955Data, usData]) => {
             // 将两个独立的 List 组装成原图表逻辑兼容的 Object 结构
             globalData = {
-                csi930955: csiData,
+                csi000300: csi000300Data,
+                csi930955: csi930955Data,
                 us10ytip: usData
             };
             
