@@ -37,6 +37,6 @@ jobs:
       run: |
         git config --local user.email "github-actions[bot]@users.noreply.github.com"
         git config --local user.name "github-actions[bot]"
-        git add 930955indicator.xlsx data.json
+        git add data/csi_000300_data.json data/csi_930955_data.json data/us10ytip_data.json
         git diff-index --quiet HEAD || git commit -m "Update daily indicator data"
         git push origin main
