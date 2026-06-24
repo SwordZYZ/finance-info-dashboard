@@ -1,14 +1,14 @@
 {
   "summary": {
-    "update_date": 20260623,
-    "close": 4919.39,
+    "update_date": 20260624,
+    "close": 4943.02,
     "current_pe_ttm": 14.84,
-    "current_pe_lyr2": 18.23,
-    "current_dp2": 2.21,
-    "percentile_1y": 93.39,
-    "percentile_3y": 97.8,
+    "current_pe_lyr2": null,
+    "current_dp2": null,
+    "percentile_1y": 92.98,
+    "percentile_3y": 97.66,
     "percentile_5y": 96.12,
-    "percentile_10y": 83.1
+    "percentile_10y": 83.06
   },
   "history": [
     {
@@ -16999,6 +16999,13 @@
       "pe_ttm": 14.84,
       "pe_lyr2": 18.23,
       "dp2": 2.21
+    },
+    {
+      "date": 20260624,
+      "close": 4943.02,
+      "pe_ttm": 14.84,
+      "pe_lyr2": null,
+      "dp2": null
     }
   ]
 }
