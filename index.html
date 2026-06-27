@@ -201,6 +201,60 @@
 
         const isDarkMode = () => window.matchMedia('(prefers-color-scheme: dark)').matches;
         const parseDate = (dateStr) => dateStr.toString().replace(/^(\d{4})(\d{2})(\d{2})$/, '$1-$2-$3');
+        const roundDownToTenth = (value) => Math.floor((value - 1e-9) * 10) / 10;
+        const roundUpToTenth = (value) => Math.ceil((value + 1e-9) * 10) / 10;
+
+        function buildYAxis(values, baseMin, baseMax, gridColor, chartHeight) {
+            const numericValues = values.filter(value => Number.isFinite(value));
+
+            if (numericValues.length === 0) {
+                return {
+                    type: 'value',
+                    scale: true,
+                    min: baseMin,
+                    max: baseMax,
+                    axisLabel: { formatter: (value) => `${Number(value.toFixed(1))} %` },
+                    splitLine: { lineStyle: { color: gridColor } }
+                };
+            }
+
+            const dataMin = Math.min(...numericValues);
+            const dataMax = Math.max(...numericValues);
+            const min = dataMin < baseMin ? roundDownToTenth(dataMin) : baseMin;
+            const max = dataMax > baseMax ? roundUpToTenth(dataMax) : baseMax;
+            const span = max - min;
+            const targetIntervals = Math.max(4, Math.min(6, Math.round(chartHeight / 95)));
+            const targetStep = span / targetIntervals;
+
+            let interval = 0.1;
+            let bestScore = Infinity;
+
+            for (let step = 0.1; step <= 1.0; step += 0.1) {
+                if (step > span) break;
+
+                const snappedMax = min + step * Math.ceil(span / step);
+                const padding = Math.max(0, snappedMax - max);
+                const intervalCount = Math.round((snappedMax - min) / step);
+                const score = (Math.abs(step - targetStep) * 1000) + (Math.abs(intervalCount - targetIntervals) * 100) + (padding * 10);
+
+                if (score < bestScore || (score === bestScore && step > interval)) {
+                    bestScore = score;
+                    interval = step;
+                }
+            }
+
+            const finalMax = min + interval * Math.ceil(span / interval);
+
+            return {
+                type: 'value',
+                scale: true,
+                min,
+                max: finalMax,
+                interval,
+                axisLabel: { formatter: (value) => `${Number(value.toFixed(1))} %` },
+                splitLine: { lineStyle: { color: gridColor } }
+            };
+        }
 
         function updateKpiCards(data) {
             if (data.csi930955 && data.csi930955.length > 0) {
@@ -232,6 +286,7 @@
                 backgroundColor: '#ffffff',
                 gridColor: '#e5e5ea',
             };
+            const chartHeight = myChart.getHeight();
 
             let option = {
                 backgroundColor: themeConfigs.backgroundColor,
@@ -248,17 +303,17 @@
                     boundaryGap: false,
                     axisLabel: { rotate: 45, margin: 12, hideOverlap: true }
                 },
-                yAxis: { 
-                    type: 'value', 
-                    axisLabel: { formatter: '{value} %' }, 
-                    splitLine: { lineStyle: { color: themeConfigs.gridColor } }
-                },
+                yAxis: {},
                 series: []
             };
 
             if (currentTab === 'csi') {
                 document.getElementById('page-title').innerText = "红利低波100股息率";
                 const csiArray = globalData.csi930955 || [];
+                const csiSeriesValues = [
+                    ...csiArray.map(item => item['股息率1（总股本）D/P1']),
+                    ...csiArray.map(item => item['股息率2（计算用股本）D/P2'])
+                ];
                 
                 option.xAxis.data = csiArray.map(item => parseDate(item['日期Date']));
                 option.legend = {
@@ -266,14 +321,7 @@
                     bottom: 0,
                     selected: { '股息率1 (总股本)': false, '股息率2 (计算股本)': true }
                 };
-                option.yAxis.min = function (value) {
-                    if (value.min >= 4.0) return '4.00';
-                    return (Math.floor((value.min - 0.01) * 10) / 10).toFixed(2);
-                };
-                option.yAxis.max = function (value) {
-                    if (value.max <= 5.0) return '5.00';
-                    return (Math.ceil((value.max + 0.01) * 10) / 10).toFixed(2);
-                };
+                option.yAxis = buildYAxis(csiSeriesValues, 4.0, 5.0, themeConfigs.gridColor, chartHeight);
                 option.series = [
                     { name: '股息率1 (总股本)', type: 'line', data: csiArray.map(item => item['股息率1（总股本）D/P1']), smooth: false, showSymbol: true, symbolSize: 5, itemStyle: { color: '#ff4d4f' } },
                     { name: '股息率2 (计算股本)', type: 'line', data: csiArray.map(item => item['股息率2（计算用股本）D/P2']), smooth: false, showSymbol: true, symbolSize: 5, itemStyle: { color: '#1890ff' } }
@@ -282,18 +330,11 @@
             } else if (currentTab === 'fred') {
                 document.getElementById('page-title').innerText = "美债 10 年实际利率";
                 const fredArray = globalData.us10ytip || [];
+                const fredSeriesValues = fredArray.map(item => item['美债利率Rate']);
                 
                 option.xAxis.data = fredArray.map(item => parseDate(item['日期Date']));
                 option.legend = { data: ['美债 10 年实际利率'], bottom: 0 };
-                
-                option.yAxis.min = function (value) {
-                    if (value.min >= 1.0) return '1.00';
-                    return (Math.floor((value.min - 0.01) * 10) / 10).toFixed(2);
-                };
-                option.yAxis.max = function (value) {
-                    if (value.max <= 2.0) return '2.00';
-                    return (Math.ceil((value.max + 0.01) * 10) / 10).toFixed(2);
-                };
+                option.yAxis = buildYAxis(fredSeriesValues, 1.0, 2.0, themeConfigs.gridColor, chartHeight);
                 option.series = [
                     { name: '美债 10 年实际利率', type: 'line', data: fredArray.map(item => item['美债利率Rate']), smooth: false, showSymbol: true, symbolSize: 5, itemStyle: { color: '#52c41a' } }
                 ];
