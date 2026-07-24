@@ -1,37 +1,16 @@
 {
   "summary": {
-    "update_date": 20260717,
-    "close": 4529.1,
-    "current_pe_ttm": 14.0,
-    "current_pe_lyr2": 16.79,
-    "current_dp2": 2.32,
-    "percentile_1y": 17.36,
-    "percentile_3y": 72.31,
-    "percentile_5y": 75.95,
-    "percentile_10y": 65.95
+    "update_date": 20260723,
+    "close": 4728.0,
+    "current_pe_ttm": 14.59,
+    "current_pe_lyr2": 17.53,
+    "current_dp2": 2.22,
+    "percentile_1y": 74.38,
+    "percentile_3y": 91.46,
+    "percentile_5y": 92.15,
+    "percentile_10y": 79.26
   },
   "history": [
-    {
-      "date": 20160721,
-      "close": 3252.52,
-      "pe_ttm": 12.39,
-      "pe_lyr2": null,
-      "dp2": null
-    },
-    {
-      "date": 20160722,
-      "close": 3225.16,
-      "pe_ttm": 12.3,
-      "pe_lyr2": null,
-      "dp2": null
-    },
-    {
-      "date": 20160725,
-      "close": 3230.89,
-      "pe_ttm": 12.31,
-      "pe_lyr2": null,
-      "dp2": null
-    },
     {
       "date": 20160726,
       "close": 3269.59,
@@ -16850,29 +16829,29 @@
       "date": 20260622,
       "close": 5059.66,
       "pe_ttm": 15.15,
-      "pe_lyr2": 18.75,
-      "dp2": 2.14
+      "pe_lyr2": null,
+      "dp2": null
     },
     {
       "date": 20260623,
       "close": 4919.39,
       "pe_ttm": 14.84,
-      "pe_lyr2": 18.23,
-      "dp2": 2.21
+      "pe_lyr2": null,
+      "dp2": null
     },
     {
       "date": 20260624,
       "close": 4943.02,
       "pe_ttm": 14.84,
-      "pe_lyr2": 18.31,
-      "dp2": 2.2
+      "pe_lyr2": null,
+      "dp2": null
     },
     {
       "date": 20260625,
       "close": 5020.1,
       "pe_ttm": 14.95,
-      "pe_lyr2": 18.59,
-      "dp2": 2.16
+      "pe_lyr2": null,
+      "dp2": null
     },
     {
       "date": 20260626,
@@ -16985,6 +16964,34 @@
       "pe_ttm": 14.0,
       "pe_lyr2": 16.79,
       "dp2": 2.32
+    },
+    {
+      "date": 20260720,
+      "close": 4598.32,
+      "pe_ttm": 14.29,
+      "pe_lyr2": 17.05,
+      "dp2": 2.29
+    },
+    {
+      "date": 20260721,
+      "close": 4739.23,
+      "pe_ttm": 14.53,
+      "pe_lyr2": 17.57,
+      "dp2": 2.22
+    },
+    {
+      "date": 20260722,
+      "close": 4717.24,
+      "pe_ttm": 14.53,
+      "pe_lyr2": 17.49,
+      "dp2": 2.23
+    },
+    {
+      "date": 20260723,
+      "close": 4728.0,
+      "pe_ttm": 14.59,
+      "pe_lyr2": 17.53,
+      "dp2": 2.22
     }
   ]
 }
