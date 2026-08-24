@@ -1,14 +1,14 @@
 {
   "summary": {
-    "update_date": 20260821,
-    "close": 4618.9,
-    "current_pe_ttm": 14.35,
-    "current_pe_lyr2": 17.13,
-    "current_dp2": 2.21,
-    "percentile_1y": 36.36,
-    "percentile_3y": 78.79,
-    "percentile_5y": 84.46,
-    "percentile_10y": 72.93
+    "update_date": 20260824,
+    "close": 4563.13,
+    "current_pe_ttm": 14.27,
+    "current_pe_lyr2": 16.93,
+    "current_dp2": 2.24,
+    "percentile_1y": 20.25,
+    "percentile_3y": 73.42,
+    "percentile_5y": 81.24,
+    "percentile_10y": 70.21
   },
   "history": [
     {
@@ -16843,8 +16843,8 @@
       "date": 20260727,
       "close": 4702.43,
       "pe_ttm": 14.52,
-      "pe_lyr2": 17.44,
-      "dp2": 2.24
+      "pe_lyr2": null,
+      "dp2": null
     },
     {
       "date": 20260728,
@@ -16978,6 +16978,13 @@
       "pe_ttm": 14.35,
       "pe_lyr2": 17.13,
       "dp2": 2.21
+    },
+    {
+      "date": 20260824,
+      "close": 4563.13,
+      "pe_ttm": 14.27,
+      "pe_lyr2": 16.93,
+      "dp2": 2.24
     }
   ]
 }
