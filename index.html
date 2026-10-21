@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>金融资产信息监控</title>
-    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <script src="vendor/echarts-5.4.3.min.js"></script>
     <style>
         /* 1. 全局设计变量 */
         :root {
@@ -443,7 +443,9 @@
                 if (myChart) {
                     myChart.dispose();
                 }
-                myChart = echarts.init(document.getElementById('main'), currentTheme);
+                // 诊断页可用 SVG 对照 Safari 的 Canvas 渲染，默认行为保持 Canvas。
+                const renderer = new URLSearchParams(window.location.search).get('renderer') === 'svg' ? 'svg' : 'canvas';
+                myChart = echarts.init(document.getElementById('main'), currentTheme, { renderer });
                 chartThemeKey = nextThemeKey;
             } else {
                 myChart.clear();
@@ -715,7 +717,12 @@
             }, 100);             
         })
         .catch(err => {
-            console.error("数据加载失败:", err);
+            console.error("图表加载失败:", err);
+            const message = document.createElement('p');
+            message.setAttribute('role', 'alert');
+            message.style.color = 'var(--text-color)';
+            message.textContent = '图表加载失败，请刷新页面重试。';
+            document.getElementById('main').replaceChildren(message);
         });
 
         window.addEventListener('resize', () => {
