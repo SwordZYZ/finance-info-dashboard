@@ -3,8 +3,8 @@
     "update_date": 20261029,
     "close": 4041.84,
     "current_pe_ttm": 12.73,
-    "current_pe_lyr2": null,
-    "current_dp2": null,
+    "current_pe_lyr2": 15.21,
+    "current_dp2": 2.68,
     "percentile_1y": 0.83,
     "percentile_3y": 45.18,
     "percentile_5y": 55.95,
@@ -17004,8 +17004,8 @@
       "date": 20261029,
       "close": 4041.84,
       "pe_ttm": 12.73,
-      "pe_lyr2": null,
-      "dp2": null
+      "pe_lyr2": 15.21,
+      "dp2": 2.68
     }
   ]
 }
